@@ -129,26 +129,27 @@ class BlockChain:
 
 	def packup(self,proof):
 		note=dict()
+		self.note=note
 		self.unchain.sort()
 		unchain=self.unchain
-
-		i=0;
+		i=0
 		tmp=None
 		mark=0
 		for node in self.unchain:
-			if i is 3:
+			if i is 4:
 				result=shuffle()
-				print(unchain[mark])
+				print("server start to process stuff")
 				note[unchain[mark][1]]=b64encode(encrypt(get_key(unchain[mark][1]),str(result[0])))
 				note[unchain[mark+1][1]]=b64encode(encrypt(get_key(unchain[mark+1][1]),str(result[1])))
 				note[unchain[mark+2][1]]=b64encode(encrypt(get_key(unchain[mark+2][1]),str(result[2])))
 				note[unchain[mark+3][1]]=b64encode(encrypt(get_key(unchain[mark+3][1]),str(result[3])))
 				mark=mark+4
-			if node[0] is tmp:
+			if node[0] == tmp:
 				i=i+1
 			else:
 				tmp=node[0]
 				i=1
+				mark+=1
 		self.unchain=[]
 		index=self.last_block().index+1
 		previous_hash=self.last_block().hash

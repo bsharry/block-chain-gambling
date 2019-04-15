@@ -15,10 +15,8 @@ if True:
 		results=request.get_json()
 		print(results)
 		if not results:
-			return "None",400
-		for node in results:
-			#hasMoney(chain,node)           #not for demostration
-			chain.unchain.append(node)
+			return "None",400           #not for demostration
+		chain.unchain.append(results)
 		return 'ok'
 
 
