@@ -9,6 +9,8 @@ from base64 import b64encode
 from base64 import b64decode
 import urllib2
 
+
+
 def mine(y,hardness):
 	while sha256(str(y)).hexdigest()[:hardness]!="0"*hardness:
 		y=y+1
@@ -50,6 +52,9 @@ def get_key(key):
 	print(key)
 	return rsa.PublicKey.load_pkcs1(key) #generate the user's public key to encrypt file
 
+def get_pkey(key):
+	return rsa.PrivateKey.load_pkcs1(key)
+
 def encrypt(key,stuff):
 	return rsa.encrypt(str(stuff),key)	#encrypt the stuff
 
@@ -57,7 +62,7 @@ def decrypt(key,stuff):
 	return rsa.decrypt(str(stuff),key)#decrypt the stuff
 	
 def create_account():
-	(public,private)=rsa.newkeys(128)
+	(public,private)=rsa.newkeys(1024)
 	return (public,private)
 
 def sign(private):
@@ -118,7 +123,7 @@ class BlockChain:
 			t=block.timestamp
 			if abs(t-self.last_block().timestamp)<100:
 				self.hardness=self.hardness+1
-			elif hardness > 1:
+			elif self.hardness > 1:
 				self.hardness=self.hardness-1
 			return True
 		return False
@@ -136,7 +141,7 @@ class BlockChain:
 		tmp=None
 		mark=0
 		for node in self.unchain:
-			if i is 4:
+			if i is 3:
 				result=shuffle()
 				print("server start to process stuff")
 				note[unchain[mark][1]]=b64encode(encrypt(get_key(unchain[mark][1]),str(result[0])))
@@ -149,7 +154,6 @@ class BlockChain:
 			else:
 				tmp=node[0]
 				i=1
-				mark+=1
 		self.unchain=[]
 		index=self.last_block().index+1
 		previous_hash=self.last_block().hash

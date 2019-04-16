@@ -9,6 +9,10 @@ pair=dict()
 
 database=[]
 
+useless=[]
+
+listofcard=dict()
+
 if True:
 	app = Flask(__name__)
 	chain=BlockChain()
@@ -50,6 +54,12 @@ if True:
 				money[i[1]]+=int(i[2])
 			else:
 				money[i[1]]-=int(i[2])
+		for i in useless:
+			if hasattr(chain.chain[-1].note,i[0]):
+				pkey=i[i]
+				key=get_pkey(i[1])
+				result=decrypt(key,chain.chain[-1].note[i[0]])
+				listofcard[pkey]=result
 		return 'ok'
 
 	@app.route('/add_block',methods=['POST'])
@@ -103,6 +113,18 @@ if True:
 		if request.method == "GET":
 			if request.cookies.get("key"):
 				private_key=b64decode(request.cookies.get("key"))
+				print("aaaaa\n")
+				print(chain.chain[-1].note)
+				pub=pair[private_key]
+				print(private_key)
+				#print(hasattr(chain.chain[-1].note,pub.decode()))
+				if chain.chain[-1].note.has_key(pub):
+					aaa=chain.chain[-1].note
+					aaa=aaa[pub]
+					aaa=decrypt(get_pkey(private_key),b64decode(aaa))
+					resp=make_response(render_template("main.html",balance=str(money[private_key]),cards=str(aaa)))
+					#resp.set_cookie("key",b64encode(private_key))
+					return resp
 				return render_template("main.html",balance=str(money[private_key]))
 			return "please log in"
 		else:
@@ -110,7 +132,12 @@ if True:
 			print(money)
 			balance=money[private_key]
 			print(balance)
-			resp=make_response(render_template("main.html",balance=str(money[private_key])))
+			if hasattr(listofcard,private_key):
+				print(listofcard[private_key])
+				resp=make_response(render_template("main.html",balance=str(money[private_key]),cards=str(listofcard[private_key])))
+				resp.set_cookie("key",b64encode(private_key))
+				return resp
+			resp=make_response(render_template("main.html",balance=str(money[private_key]),cards="NO CARD SHUFFLED"))
 			resp.set_cookie("key",b64encode(private_key))
 			return resp
 
@@ -138,7 +165,15 @@ if True:
 		database.append((number,key,amount))
 		return "ok"
 
-			
+	@app.route("/shuffle",methods=['POST','GET'])
+	def nnn():
+		if request.method=='POST':
+			key=request.cookies.get("key")
+			key=b64decode(key)
+			pub=pair[key]
+			pay(pub,"shuffle")
+			useless.append((pub,key))
+			return 'ok'
 
 	def consensus():            #this is wrong 
 		global chain
