@@ -57,7 +57,7 @@ def decrypt(key,stuff):
 	return rsa.decrypt(str(stuff),key)#decrypt the stuff
 	
 def create_account():
-	(public,private)=rsa.newkeys(1024)
+	(public,private)=rsa.newkeys(128)
 	return (public,private)
 
 def sign(private):
