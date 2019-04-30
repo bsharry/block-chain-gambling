@@ -16,6 +16,9 @@ def mine(y,hardness):
 		y=y+1
 	return y
 
+def awesome(a,b):
+	return ord(a)%2 == ord(b)%2
+
 def valid_proof(y,hardness):
 	return sha256(str(y)).hexdigest()[:hardness]=="0"*hardness
 

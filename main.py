@@ -49,11 +49,16 @@ if True:
 	def mine():
 		chain.mine()
 		result=chain.chain[-1].hash[6]
+		#print(database)
+		if 'database' not in dir():
+			database=[]
 		for i in database:
-			if i[0]==result:
-				money[i[1]]+=int(i[2])
+			print(result)
+			if awesome(i[0],result):
+				money[pair[i[1]]]+=int(i[2])
 			else:
-				money[i[1]]-=int(i[2])
+				money[pair[i[1]]]-=int(i[2])
+		database=[]
 		for i in useless:
 			if hasattr(chain.chain[-1].note,i[0]):
 				pkey=i[i]
@@ -82,7 +87,7 @@ if True:
 		(public_key,private_key)=create_account()
 		tmp=dict()
 		pair[private_key.save_pkcs1()]=public_key.save_pkcs1()
-		money[private_key.save_pkcs1()]=1000
+		money[public_key.save_pkcs1()]=1000
 		tmp['public_key']=public_key.save_pkcs1()
 		tmp['private_key']=b64encode(private_key.save_pkcs1())
 		result=json.dumps(tmp)
@@ -118,29 +123,46 @@ if True:
 				pub=pair[private_key]
 				print(private_key)
 				#print(hasattr(chain.chain[-1].note,pub.decode()))
+				print(chain.chain[-1].note.has_key(pub))
 				if chain.chain[-1].note.has_key(pub):
 					aaa=chain.chain[-1].note
 					aaa=aaa[pub]
 					aaa=decrypt(get_pkey(private_key),b64decode(aaa))
-					resp=make_response(render_template("main.html",balance=str(money[private_key]),cards=str(aaa)))
+					print(aaa)
+					resp=make_response(render_template("main.html",balance=str(money[pub]),cards=str(aaa)))
 					#resp.set_cookie("key",b64encode(private_key))
 					return resp
-				return render_template("main.html",balance=str(money[private_key]))
+				return render_template("main.html",balance=str(money[pub]))
 			return "please log in"
 		else:
 			private_key=b64decode(request.form['passwd'])
 			print(money)
-			balance=money[private_key]
+			pub=pair[private_key]
+			balance=money[pub]
 			print(balance)
 			if hasattr(listofcard,private_key):
 				print(listofcard[private_key])
-				resp=make_response(render_template("main.html",balance=str(money[private_key]),cards=str(listofcard[private_key])))
+				resp=make_response(render_template("main.html",balance=str(money[pub]),cards=str(listofcard[private_key])))
 				resp.set_cookie("key",b64encode(private_key))
 				return resp
-			resp=make_response(render_template("main.html",balance=str(money[private_key]),cards="NO CARD SHUFFLED"))
+			resp=make_response(render_template("main.html",balance=str(money[pub]),cards="NO CARD SHUFFLED"))
 			resp.set_cookie("key",b64encode(private_key))
 			return resp
 
+	@app.route('/want',methods=['GET'])
+	def pay_you():
+		if request.cookies.get("key"):
+			private_key=b64decode(request.cookies.get("key"))
+			public_key=pair[private_key]
+			money[public_key]+=100
+			return 'ok'
+		return 'failed'
+
+	@app.route('/logout',methods=['GET'])
+	def logout():
+		response=make_response('logout successfully')
+		response.delete_cookie('key')
+		return response
 
 	@app.route('/pay',methods=['POST'])
 	def pay_tmp():
@@ -150,7 +172,10 @@ if True:
 			to=request.form['address']
 			number=int(request.form['amount'])
 			public_key=pair[private_key]
-			money[private_key]-=number
+			money[public_key]-=number
+			if not money.has_key(to):
+				money[to]=-number
+			money[to]+=number
 			for i in range(number):
 				pay(public_key,to)
 			return "ok"
