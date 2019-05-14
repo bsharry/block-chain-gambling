@@ -7,7 +7,7 @@ money=dict()
 
 pair=dict()
 
-database=[]
+database=list()
 
 useless=[]
 
@@ -49,15 +49,16 @@ if True:
 	def mine():
 		chain.mine()
 		result=chain.chain[-1].hash[6]
-		#print(database)
-		if 'database' not in dir():
-			database=[]
+		global database
+		print("database is ")
+		print(database)
 		for i in database:
-			print(result)
+			print(i)
+			m=i[1]
 			if awesome(i[0],result):
-				money[pair[i[1]]]+=int(i[2])
+				money[m]+=int(i[2])
 			else:
-				money[pair[i[1]]]-=int(i[2])
+				money[m]-=int(i[2])
 		database=[]
 		for i in useless:
 			if hasattr(chain.chain[-1].note,i[0]):
@@ -88,7 +89,7 @@ if True:
 		tmp=dict()
 		pair[private_key.save_pkcs1()]=public_key.save_pkcs1()
 		money[public_key.save_pkcs1()]=1000
-		tmp['public_key']=public_key.save_pkcs1()
+		tmp['public_key']=b64encode(public_key.save_pkcs1())
 		tmp['private_key']=b64encode(private_key.save_pkcs1())
 		result=json.dumps(tmp)
 		return result
@@ -118,8 +119,8 @@ if True:
 		if request.method == "GET":
 			if request.cookies.get("key"):
 				private_key=b64decode(request.cookies.get("key"))
-				print("aaaaa\n")
 				print(chain.chain[-1].note)
+				print(pair)
 				pub=pair[private_key]
 				print(private_key)
 				#print(hasattr(chain.chain[-1].note,pub.decode()))
@@ -169,12 +170,10 @@ if True:
 		if request.cookies.get("key"):
 			private_key=b64decode(request.cookies.get("key"))
 			print(request.form)
-			to=request.form['address']
+			to=b64decode(request.form['address'])
 			number=int(request.form['amount'])
 			public_key=pair[private_key]
 			money[public_key]-=number
-			if not money.has_key(to):
-				money[to]=-number
 			money[to]+=number
 			for i in range(number):
 				pay(public_key,to)
@@ -187,6 +186,8 @@ if True:
 		amount=request.form['amount']
 		key=request.cookies.get("key")
 		key=b64decode(key)
+		key=pair[key]
+		global database
 		database.append((number,key,amount))
 		return "ok"
 
